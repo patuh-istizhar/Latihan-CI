@@ -1,5 +1,5 @@
 name: CI
- 
+
 on:
   push:
     branches:
@@ -7,45 +7,48 @@ on:
   pull_request:
     branches:
       - main
- 
+
+permissions:
+  contents: write
+
 env:
   CSV_URL: "MLproject/train_pca.csv"
- 
+
 jobs:
   build:
     runs-on: ubuntu-latest
- 
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v3
- 
+      - uses: actions/checkout@v4
+
       # Setup Python 3.12.7
       - name: Set up Python 3.12.7
         uses: actions/setup-python@v4
         with:
           python-version: "3.12.7"
-      
+
       # Check Env Variables
       - name: Check Env
         run: |
           echo $CSV_URL
- 
+
       # Install mlflow
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install mlflow
-      
+
       # Run as a mlflow project
       - name: Run mlflow project
         run: |
-          mlflow run MLproject --env-manager=local 
- 
+          mlflow run MLproject --env-manager=local
+
       # Save models to GitHub Repository
       - name: Save mlruns to repo
         run: |
-          git config --global user.name ${{ secrets.username }}
-          git config --global user.email ${{ secrets.email }}
+          # Gunakan identitas bot GitHub Actions untuk commit
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add mlruns/
-          git commit -m "Save mlruns from CI run"
-          git push origin main
+          git commit -m "Save mlruns from CI run" || echo "No changes to commit" # Tambahkan || echo "No changes..." untuk menghindari error jika tidak ada perubahan
+          git push origin main # Ini akan menggunakan GITHUB_TOKEN
